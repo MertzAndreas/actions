@@ -1,0 +1,42 @@
+name: "Prettier formatter"
+description: "Format files with Prettier"
+inputs:
+    prettier-version:
+        description: "Prettier version to use"
+        required: false
+        default: "2.0.5"
+
+    prettier-options:
+        description: "Prettier options"
+        required: false
+        default: "--write"
+
+    files:
+        description: "Files or glob patterns to format"
+        required: true
+
+    config-path:
+        description: "Path to Prettier configuration file"
+        required: false
+
+    commit-message:
+        description: "Got prettyfied!"
+        required: false
+
+    github-token:
+        description: "GitHub token"
+        required: false
+
+outputs:
+    formatted-files:
+        description: "List of formatted files"
+
+    formatting-status:
+        description: "Status of the formatting process"
+
+    error-message:
+        description: "Error message if formatting fails"
+
+runs:
+    using: "node20"
+    main: "index.js"
