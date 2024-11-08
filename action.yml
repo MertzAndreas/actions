@@ -21,12 +21,9 @@ inputs:
         required: false
 
 outputs:
-    formatted-files:
-        description: "List of formatted files"
-
-    formatting-status:
-        description: "Status of the formatting process"
+    changed-files:
+        description: "Boolean indicating if any files were changed"
 
 runs:
-    using: "node20"
+    using: "node22"
     main: "dist/index.js"

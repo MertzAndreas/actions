@@ -16,14 +16,14 @@ jobs:
               run: npm install
 
             - name: Run My Custom Action
+              id: my-action
               uses: ./ # Path to the action
               with:
                   prettier-version: "3.0.0"
                   prettier-options: "--write"
-                  files: "src/**/*.js"
                   config-path: ".prettierrc"
-                  commit-message: "Got prettyfied!"
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: git diff
-              run: git diff
+            #Check output of changed-files from my custom action
+            - name: Check if files were changed
+              run: |
+                  echo "Files were changed: ${{ steps.my-action.outputs.changed-files }}"

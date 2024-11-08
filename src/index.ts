@@ -1,46 +1,63 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as path from "path";
-import * as glob from "glob";
 import { execSync } from "child_process";
+import { glob } from "glob";
 
 const main = async () => {
-    // Install Prettier
-    core.info("Installing Prettier...");
+    const filesGlop = core.getInput("files-glob");
     const prettierVersion = core.getInput("prettier-version");
+    const configPath = core.getInput("config-path");
+    const prettierOptions = core.getInput("prettier-options");
+
+    core.info("Installing Prettier...");
     execSync(`npm install prettier@${prettierVersion}`);
     core.info(`Prettier ${prettierVersion} installed successfully!`);
 
-    //Check if prettier was installed
-    const prettierPath = path.join(
-        process.cwd(),
-        "node_modules",
-        ".bin",
-        "prettier"
-    );
+    // Check if prettier was installed
+    const prettierPath = path.join(process.cwd(), "node_modules", ".bin", "prettier");
     if (!fs.existsSync(prettierPath)) {
         core.setFailed("Prettier was not installed successfully!");
         return;
     }
 
-    const files = core.getInput("files-glob");
-    //Find files matching the glob pattern but exclude node_modules
+    // Construct the command dynamically
+    let command = `${prettierPath}  ${filesGlop} ${prettierOptions}`;
 
-    const filesToFormat = glob.sync(files, {
-        ignore: ["**/node_modules/**"],
-    });
+    if (configPath) {
+        // Use glob to match the config path pattern
+        const configFiles = glob.sync(configPath, { cwd: process.cwd() });
 
-    if (filesToFormat.length === 0) {
-        core.info("No files found to format!");
-        return;
+        if (configFiles.length > 0) {
+            const configFile = path.join(process.cwd(), configFiles[0]); // Use the first match
+            command += ` --config ${configFile}`;
+            core.info(`Using config file: ${configFile}`);
+        } else {
+            core.warning(
+                `Config file matching "${configPath}" not found, using default configuration.`
+            );
+        }
     }
 
-    const prettierArgs = core.getInput("prettier-options");
+    try {
+        core.info(`Running Prettier with the following command:\n ${command}`);
+        const output = execSync(command).toString();
 
-    filesToFormat.forEach((file) => {
-        execSync(`${prettierPath} --write ${file} ${prettierArgs}`);
-        core.info(`Formatting file: ${file}`);
-    });
+        const filesFormatted = ["ts", "tsx", "js", "jsx"].some((ext) => output.includes(ext));
+        if (filesFormatted) {
+            core.info(`Prettier has formatted the following files:\n${output}`);
+            core.setOutput("changed-files", "true");
+        } else {
+            core.info("No files were formatted.");
+            core.setOutput("changed-files", "false");
+        }
+    } catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(`Prettier formatting failed: ${error.message}`);
+        } else {
+            core.setFailed("Prettier formatting failed with an unknown error.");
+        }
+    }
 };
 
 main();
