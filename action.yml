@@ -25,5 +25,5 @@ outputs:
         description: "Boolean indicating if any files were changed"
 
 runs:
-    using: "node22"
+    using: "node20"
     main: "dist/index.js"
