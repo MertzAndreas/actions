@@ -1,0 +1,32 @@
+name: "Prettier formatter"
+description: "Format files with Prettier"
+inputs:
+    prettier-version:
+        description: "Prettier version to use"
+        required: false
+        default: "3.3.3"
+
+    prettier-options:
+        description: "Prettier options"
+        required: false
+        default: "--write"
+
+    files-glob:
+        description: "Glob patterns of files to format"
+        required: false
+        default: "**/*.{js,jsx,ts,tsx}"
+
+    config-path:
+        description: "Path to Prettier configuration file"
+        required: false
+
+outputs:
+    formatted-files:
+        description: "List of formatted files"
+
+    formatting-status:
+        description: "Status of the formatting process"
+
+runs:
+    using: "node20"
+    main: "dist/index.js"
