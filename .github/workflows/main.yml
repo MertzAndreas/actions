@@ -10,18 +10,18 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4.1.0
               with:
-                  node-version: "22"
+                  node-version: "20"
 
             - name: Install dependencies
               run: npm install
 
             - name: Run My Custom Action
               id: my-action
-              uses: MertzAndreas/actions@v1.0
+              uses: ./
               with:
                   prettier-version: "3.0.0"
                   prettier-options: "--write"
-                  config-path: ".prettierrc"
+                  config-path: ".prettierrc.json"
 
             #Check output of changed-files from my custom action
             - name: Check if files were changed

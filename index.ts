@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as fs from "fs";
 import * as path from "path";
+
 import { execSync } from "child_process";
 import { glob } from "glob";
 
@@ -10,9 +11,8 @@ const main = async () => {
     const configPath = core.getInput("config-path");
     const prettierOptions = core.getInput("prettier-options");
 
-    core.info("Installing Prettier...");
+    core.info(`Installing prettier version ${prettierVersion}`);
     execSync(`npm install prettier@${prettierVersion}`);
-    core.info(`Prettier ${prettierVersion} installed successfully!`);
 
     // Check if prettier was installed
     const prettierPath = path.join(process.cwd(), "node_modules", ".bin", "prettier");
@@ -21,12 +21,14 @@ const main = async () => {
         return;
     }
 
+    core.info(`Prettier installed successfully`);
+
     // Construct the command dynamically
     let command = `${prettierPath}  ${filesGlop} ${prettierOptions}`;
 
-    if (configPath) {
-        // Use glob to match the config path pattern
-        const configFiles = glob.sync(configPath, { cwd: process.cwd() });
+
+
+        const configFiles = glob.sync(configPath || ".prettierrc*", { cwd: process.cwd() });
 
         if (configFiles.length > 0) {
             const configFile = path.join(process.cwd(), configFiles[0]); // Use the first match
@@ -37,7 +39,7 @@ const main = async () => {
                 `Config file matching "${configPath}" not found, using default configuration.`
             );
         }
-    }
+
 
     try {
         core.info(`Running Prettier with the following command:\n ${command}`);

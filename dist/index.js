@@ -13,35 +13,36 @@ const core = require("@actions/core");
 const fs = require("fs");
 const path = require("path");
 const child_process_1 = require("child_process");
+const glob_1 = require("glob");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const filesGlop = core.getInput("files-glob");
     const prettierVersion = core.getInput("prettier-version");
     const configPath = core.getInput("config-path");
     const prettierOptions = core.getInput("prettier-options");
-    core.info("Installing Prettier...");
+    core.info(`Installing prettier version ${prettierVersion}`);
     (0, child_process_1.execSync)(`npm install prettier@${prettierVersion}`);
-    core.info(`Prettier ${prettierVersion} installed successfully!`);
     // Check if prettier was installed
     const prettierPath = path.join(process.cwd(), "node_modules", ".bin", "prettier");
     if (!fs.existsSync(prettierPath)) {
         core.setFailed("Prettier was not installed successfully!");
         return;
     }
+    core.info(`Prettier installed successfully`);
     // Construct the command dynamically
     let command = `${prettierPath}  ${filesGlop} ${prettierOptions}`;
-    if (configPath) {
-        const configFile = path.join(process.cwd(), configPath);
-        if (fs.existsSync(configFile)) {
-            command += ` --config ${configFile}`;
-        }
-        else {
-            core.warning(`Config file not found at ${configFile}, using default configuration.`);
-        }
+    const configFiles = glob_1.glob.sync(configPath || ".prettierrc*", { cwd: process.cwd() });
+    if (configFiles.length > 0) {
+        const configFile = path.join(process.cwd(), configFiles[0]); // Use the first match
+        command += ` --config ${configFile}`;
+        core.info(`Using config file: ${configFile}`);
+    }
+    else {
+        core.warning(`Config file matching "${configPath}" not found, using default configuration.`);
     }
     try {
         core.info(`Running Prettier with the following command:\n ${command}`);
         const output = (0, child_process_1.execSync)(command).toString();
-        const filesFormatted = ['ts', 'tsx', 'js', 'jsx'].some(ext => output.includes(ext));
+        const filesFormatted = ["ts", "tsx", "js", "jsx"].some((ext) => output.includes(ext));
         if (filesFormatted) {
             core.info(`Prettier has formatted the following files:\n${output}`);
             core.setOutput("changed-files", "true");
